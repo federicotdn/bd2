@@ -12,10 +12,10 @@ create or replace PACKAGE BODY scoring_pkg AS  -- body
         AND MODIFIED >= ( SYSDATE - pInterval ) 
    );
 
-   CURSOR LAST_N_REVIEWS( pInterval NUMBER ) IS
+   CURSOR LAST_N_REVIEWS( pInterval NUMBER, pUserId NUMBER ) IS
    SELECT CREATED, SCORE
    FROM REVIEW
-   WHERE USER_ID = SELLER_REC.USER_ID
+   WHERE USER_ID = pUserId
    AND CREATED > SYSDATE - pInterval
    AND ROLE = 'SELLER'
    AND STATUS = 'PUBLISHED';
@@ -28,7 +28,7 @@ create or replace PACKAGE BODY scoring_pkg AS  -- body
 	  p180Positive NUMBER, p180Negative NUMBER, p180Neutral NUMBER,
 	  pScoreTotal NUMBER, pCountTotal NUMBER
 	  ) AS
-	  vRATIO NUMBER(10,10):=0;
+	  vRATIO NUMBER(10,2):=0;
    BEGIN
 		
 		IF pCountTotal <=0 THEN 
@@ -87,28 +87,36 @@ create or replace PACKAGE BODY scoring_pkg AS  -- body
 	  -- Por cada seller,
 	  FOR SELLER_REC IN SELLER_CUR(ndays) LOOP
 		-- Buscar el puntaje recibido en las ventas de la ultima semana
-		FOR REVIEW_REC IN LAST_N_REVIEWS(180) LOOP
+		FOR REVIEW_REC IN LAST_N_REVIEWS(180, SELLER_REC.USER_ID) LOOP
 			IF REVIEW_REC.SCORE = 'POSITIVE'  THEN 
-				IF REVIEW_REC.CREATED > ( SYSDATE - 7 ) 
-					v7Positive = v7Positive + 1;
-				IF REVIEW_REC.CREATED > ( SYSDATE - 30 ) 
-					v30Positive = v30Positive + 1;
-				v180Positive = v180Positive + 1;
+				IF REVIEW_REC.CREATED > ( SYSDATE - 7 ) THEN
+					v7Positive := v7Positive + 1;
+				END IF;
+				IF REVIEW_REC.CREATED > ( SYSDATE - 30 ) THEN
+					v30Positive := v30Positive + 1;
+				END IF;
+				v180Positive := v180Positive + 1;
+			END IF;
 
 			IF REVIEW_REC.SCORE = 'NEGATIVE'  THEN 
-				IF REVIEW_REC.CREATED > ( SYSDATE - 7 ) 
-					v7Negative = v7Negative + 1;
-				IF REVIEW_REC.CREATED > ( SYSDATE - 30 ) 
-					v30Negative = v30Negative + 1;
-				v180Negative = v180Negative + 1;
-
+				IF REVIEW_REC.CREATED > ( SYSDATE - 7 ) THEN
+					v7Negative := v7Negative + 1;
+				END IF;
+				IF REVIEW_REC.CREATED > ( SYSDATE - 30 ) THEN
+					v30Negative := v30Negative + 1;
+				END IF;
+				v180Negative := v180Negative + 1;
+			END IF;
 
 			IF REVIEW_REC.SCORE = 'NEUTRAL'  THEN 
-				IF REVIEW_REC.CREATED > ( SYSDATE - 7 ) 
-					v7Neutral = v7Neutral + 1;
-				IF REVIEW_REC.CREATED > ( SYSDATE - 30 ) 
-					v30Neutral = v30Neutral + 1;
-				v180Neutral = v180Neutral + 1;
+				IF REVIEW_REC.CREATED > ( SYSDATE - 7 ) THEN
+					v7Neutral := v7Neutral + 1;
+				END IF;
+				IF REVIEW_REC.CREATED > ( SYSDATE - 30 ) THEN
+					v30Neutral := v30Neutral + 1;
+				END IF;
+				v180Neutral := v180Neutral + 1;
+			END IF;
 
 		END LOOP;
 

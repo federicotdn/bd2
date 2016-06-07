@@ -1,0 +1,33 @@
+DECLARE
+  NDAYS NUMBER;
+BEGIN
+  NDAYS := 30;
+
+  SCORING_PKG.CALCULATE_SELLER_SCORING(
+    NDAYS => NDAYS
+  );
+--rollback; 
+END;
+
+Pruebas con NDAYS = 30
+Cambiar precision de Vratio de 10,10 a 10,2, en el script original
+
+Prueba 1: Estatico y Dinamico original
+5,757 segundos
+5,26  segundos
+5,212 segundos
+
+Prueba 2: Mejoras estaticas, script original
+1,008  segundos
+0,607  segundos
+0,532  segundos
+
+Prueba 3: Sin mejoras estaticas, script mejorado
+1,538  segundos
+1,367  segundos
+1,401  segundos
+
+Prueba 4: Mejoras estaticas y script mejorado
+0,282  segundos
+0,317  segundos
+0,327  segundos
